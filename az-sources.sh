@@ -62,3 +62,33 @@ function create_vm {
 
 	echo -e "VM was created.\nYou should be able to connect using: ssh ${resource_suffix}@$(az vm show --resource-group $resource_group --name $vm -d --query [publicIps] --output tsv)"
 }
+
+# Create a registry by first trying if name is already taken.
+# If this is the case, $RANDOM will be concatenated to name and group will be
+# tried to be created.
+function create_container_registry {
+	local resource_suffix
+	local registry
+
+	if [ $# -lt 1 ]; then
+		echo "${FUNCNAME[0]} needs one arguments: the resource_suffix" 1>&2
+
+		exit 1
+	fi
+
+	resource_suffix=$1
+	registry="${resource_suffix}registry"
+
+	# If registry name is already taken, we add some randomness.
+	is_name_available=$(az acr check-name -o yaml -n $registry | grep 'nameAvailable' | cut -d' ' -f2)
+	if [ $is_name_available = "false" ]; then
+		registry="${registry}${RANDOM}"
+	fi
+
+	# We use Standard to be able to enable anonymous pull.
+	az acr create --resource-group $resource_group --name $registry --sku Standard
+	az acr update --name $registry --anonymous-pull-enabled
+	az acr login --name $registry
+
+	echo -e "Container registry is: ${registry}.azurecr.io\nYou can use this as CONTAINER_REPO"
+}
