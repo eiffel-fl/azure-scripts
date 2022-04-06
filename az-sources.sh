@@ -63,6 +63,37 @@ function create_vm {
 	echo -e "VM was created.\nYou should be able to connect using: ssh ${resource_suffix}@$(az vm show --resource-group $resource_group --name $vm -d --query [publicIps] --output tsv)"
 }
 
+function craft_windows_password {
+	password=$(echo $RANDOM | md5sum | head -c 10)
+
+	echo -n "${password}&U"
+}
+
+# Create a Windows vm.
+function create_windows_vm {
+	local resource_suffix
+	local resource_group
+
+	local vm
+	local password
+
+	if [ $# -lt 2 ]; then
+		echo "${FUNCNAME[0]} needs 2 arguments: the resource_suffix and the resource_group" 1>&2
+
+		exit 1
+	fi
+
+	resource_suffix=$1
+	resource_group=$2
+
+	vm="${resource_suffix}vm"
+	password=$(craft_windows_password)
+
+	az vm create --resource-group $resource_group --name $vm --public-ip-sku Standard --image 'MicrosoftWindowsDesktop:windows11preview:win11-21h2-pro:22000.194.2109250206' --admin-username ${resource_suffix} --admin-password $password
+
+	echo -e "VM was created.\nYou should be able to connect using: xfreerdp -u:${resource_suffix} -v:$(az vm show --resource-group $resource_group --name $vm -d --query [publicIps] --output tsv) with the following password: ${password}"
+}
+
 # Create a registry by first trying if name is already taken.
 # If this is the case, $RANDOM will be concatenated to name and group will be
 # tried to be created.
