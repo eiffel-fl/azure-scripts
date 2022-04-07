@@ -57,7 +57,7 @@ function create_vm {
 
 	vm="${resource_suffix}vm"
 
-	az vm create --resource-group $resource_group --name $vm --subnet $(get_kv1_id) --public-ip-sku Standard --image UbuntuLTS --admin-username ${resource_suffix} --generate-ssh-keys --size $vm_size --os-disk-size-gb $disk_size
+	az vm create --resource-group $resource_group --name $vm --subnet $(get_kv1_id) --image UbuntuLTS --admin-username ${resource_suffix} --generate-ssh-keys --size $vm_size --os-disk-size-gb $disk_size
 
 	# To extend OS disk space of an already existing VM, you can do the following:
 # 	disk_name=$(az disk list --resource-group $resource_group --query '[*].{Name:name,Gb:diskSizeGb,Tier:accountType}' -o tsv | grep $vm | cut -f1)
@@ -65,7 +65,7 @@ function create_vm {
 # 	az disk update --resource-group $resource_group --name $disk_name --size-gb $disk_size --sku StandardSSD_LRS
 # 	az vm start -g $resource_group -n $vm
 
-	echo -e "VM was created.\nYou should be able to connect using: ssh ${resource_suffix}@$(az vm show --resource-group $resource_group --name $vm -d --query [publicIps] --output tsv)"
+	echo -e "VM was created.\nYou should be able to connect using: ssh ${resource_suffix}@$(az vm show --resource-group $resource_group --name $vm -d --query [privateIps] --output tsv)"
 }
 
 function craft_windows_password {
