@@ -30,6 +30,11 @@ function create_resource_group {
 	echo $resource_group
 }
 
+# Get subnet id to be able to ssh.
+function get_kv1_id {
+	echo $(az network vnet subnet list -o tsv -g kv1 --vnet-name kv1 --query '[0].id')
+}
+
 # Create a vm with given size (like Standard_D32a_v4) and OS disk size (in GB).
 function create_vm {
 	local resource_suffix
@@ -52,7 +57,7 @@ function create_vm {
 
 	vm="${resource_suffix}vm"
 
-	az vm create --resource-group $resource_group --name $vm --public-ip-sku Standard --image UbuntuLTS --admin-username ${resource_suffix} --generate-ssh-keys --size $vm_size --os-disk-size-gb $disk_size
+	az vm create --resource-group $resource_group --name $vm --subnet $(get_kv1_id) --public-ip-sku Standard --image UbuntuLTS --admin-username ${resource_suffix} --generate-ssh-keys --size $vm_size --os-disk-size-gb $disk_size
 
 	# To extend OS disk space of an already existing VM, you can do the following:
 # 	disk_name=$(az disk list --resource-group $resource_group --query '[*].{Name:name,Gb:diskSizeGb,Tier:accountType}' -o tsv | grep $vm | cut -f1)

@@ -16,8 +16,13 @@ az login --scope https://management.core.windows.net//.default
 vm_size='Standard_D32a_v4'
 disk_size='128'
 
+current_subscription=$(az account show -o tsv --query name)
+az account set -s 'volk-arc'
+
 resource_group=$(create_resource_group $resource_suffix)
 
 create_vm $resource_suffix $resource_group $vm_size $disk_size
+
+az account set -s "${current_subscription}"
 
 echo -e "Everything should be OK!\nOnce terminated, please delete your resources with: az group delete --name ${resource_group}"
