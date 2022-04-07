@@ -24,4 +24,4 @@ az aks get-credentials --resource-group $resource_group --name $kubernetes_clust
 
 create_container_registry $resource_suffix
 
-echo -e "Everything should be OK!\nOnce terminated, please delete your resources with: az group delete --name ${resource_group}"
+echo -e "Everything should be OK!\nOnce terminated, please delete your resources with: az group delete --no-wait --name ${resource_group}"

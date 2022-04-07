@@ -25,4 +25,4 @@ create_vm $resource_suffix $resource_group $vm_size $disk_size
 
 az account set -s "${current_subscription}"
 
-echo -e "Everything should be OK!\nOnce terminated, please delete your resources with: az group delete --name ${resource_group}"
+echo -e "Everything should be OK!\nOnce terminated, please delete your resources with: az group delete --no-wait --name ${resource_group}"
