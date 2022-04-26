@@ -57,7 +57,18 @@ function create_vm {
 
 	vm="${resource_suffix}vm"
 
-	az vm create --resource-group $resource_group --name $vm --subnet $(get_kv1_id) --image UbuntuLTS --admin-username ${resource_suffix} --generate-ssh-keys --size $vm_size --os-disk-size-gb $disk_size
+	# Use Ubuntu 22.04 as default image.
+	image='canonical:0001-com-ubuntu-server-jammy:22_04-lts:22.04.202204200'
+
+	# If the vm_size corresponds to Ampere Altra one, we need to use this
+	# particular image instead.
+	# VM size corresponding to Ampere Altra seems to have the 'p' feature but it
+	# is not documented so far.
+	if [[ $vm_size =~ [ED][0-9]+p ]]; then
+		image='canonical:0001-com-ubuntu-server-arm-preview-focal:20_04-lts:latest'
+	fi
+
+	az vm create --resource-group $resource_group --name $vm --subnet $(get_kv1_id) --image $image --admin-username ${resource_suffix} --generate-ssh-keys --size $vm_size --os-disk-size-gb $disk_size
 
 	# To extend OS disk space of an already existing VM, you can do the following:
 # 	disk_name=$(az disk list --resource-group $resource_group --query '[*].{Name:name,Gb:diskSizeGb,Tier:accountType}' -o tsv | grep $vm | cut -f1)

@@ -13,7 +13,11 @@ fi
 
 az login --scope https://management.core.windows.net//.default
 
+# Ampere Altra Neoverse ('p' means Ampere)
+vm_size='Standard_E8ps_v5'
+# AMD EPYC ('a' means AMD)
 vm_size='Standard_D32a_v4'
+
 disk_size='128'
 
 current_subscription=$(az account show -o tsv --query name)
