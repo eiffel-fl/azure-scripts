@@ -32,7 +32,8 @@ function create_resource_group {
 
 # Get subnet id to be able to ssh.
 function get_kv1_id {
-	echo $(az network vnet subnet list -o tsv -g kv1 --vnet-name kv1 --query '[0].id')
+	# Taken from https://github.com/kinvolk/msft-azure-vpn/issues/13#issuecomment-1114802695
+	echo $(az network vnet subnet list -g kv1 --vnet-name kv1 --query "[?name!='GatewaySubnet'].id" --output tsv | head -n1)
 }
 
 # Create a vm with given size (like Standard_D32a_v4) and OS disk size (in GB).
