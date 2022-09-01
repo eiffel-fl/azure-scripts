@@ -6,22 +6,22 @@
 source az-sources.sh
 
 if [ $# -eq 1 ]; then
-	resource_suffix=$1
+	resource_prefix=$1
 else
-	resource_suffix=$(whoami)
+	resource_prefix=$(whoami)
 fi
 
 az login --scope https://management.core.windows.net//.default
 
-kubernetes_cluster="${resource_suffix}cluster"
+kubernetes_cluster="${resource_prefix}cluster"
 
-resource_group=$(create_resource_group $resource_suffix)
+resource_group=$(create_resource_group $resource_prefix)
 
 # Create an Azure Kubernetes Service within above resource group.
 az aks create --resource-group $resource_group --name $kubernetes_cluster --node-count 2 --generate-ssh-keys
 # Get credentials, so kubectl will interact with this cluster.
 az aks get-credentials --resource-group $resource_group --name $kubernetes_cluster --overwrite-existing
 
-create_container_registry $resource_suffix
+create_container_registry $resource_prefix
 
 echo -e "Everything should be OK!\nOnce terminated, please delete your resources with: az group delete --no-wait --name ${resource_group}"
