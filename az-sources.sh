@@ -36,6 +36,54 @@ function get_kv1_id {
 	echo $(az network vnet subnet list -g kv1 --vnet-name kv1 --query "[?name!='GatewaySubnet'].id" --output tsv | head -n1)
 }
 
+function start_vm {
+	local resource_group
+	local vm_name
+
+	if [ $# -lt 2 ]; then
+		echo "${FUNCNAME[0]} needs 2 arguments: the resource_group and the vm_name" 1>&2
+
+		exit 1
+	fi
+
+	resource_group=$1
+	vm_name=$2
+
+	az vm start --resource-group $resource_group --name $vm_name
+}
+
+function get_vm_username {
+	local resource_group
+	local vm_name
+
+	if [ $# -lt 2 ]; then
+		echo "${FUNCNAME[0]} needs 2 arguments: the resource_group and the vm_name" 1>&2
+
+		exit 1
+	fi
+
+	resource_group=$1
+	vm_name=$2
+
+	az vm show --resource-group $resource_group --name $vm_name -d --query '[osProfile.adminUsername]' --output tsv
+}
+
+function get_vm_private_ip {
+	local resource_group
+	local vm_name
+
+	if [ $# -lt 2 ]; then
+		echo "${FUNCNAME[0]} needs 2 arguments: the resource_group and the vm_name" 1>&2
+
+		exit 1
+	fi
+
+	resource_group=$1
+	vm_name=$2
+
+	az vm show --resource-group $resource_group --name $vm_name -d --query '[privateIps]' --output tsv
+}
+
 # Create a vm with given size (like Standard_D32a_v4) and OS disk size (in GB).
 function create_vm {
 	local resource_prefix
@@ -67,7 +115,7 @@ function create_vm {
 # 	az disk update --resource-group $resource_group --name $disk_name --size-gb $disk_size --sku StandardSSD_LRS
 # 	az vm start -g $resource_group -n $vm
 
-	echo -e "VM was created.\nYou should be able to connect using: ssh ${resource_prefix}@$(az vm show --resource-group $resource_group --name $vm -d --query [privateIps] --output tsv)"
+	echo -e "VM was created.\nYou should be able to connect using: ssh $(get_vm_username $resource_group $vm)@$(get_vm_private_ip $resource_group $vm)"
 }
 
 function craft_windows_password {
