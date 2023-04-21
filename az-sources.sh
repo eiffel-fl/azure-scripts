@@ -42,11 +42,12 @@ function create_vm {
 	local resource_group
 	local vm_size
 	local disk_size
+	local image
 
 	local vm
 
-	if [ $# -lt 4 ]; then
-		echo "${FUNCNAME[0]} needs 4 arguments: the resource_prefix, the resource_group, the vm_size and the disk_size" 1>&2
+	if [ $# -lt 5 ]; then
+		echo "${FUNCNAME[0]} needs 5 arguments: the resource_prefix, the resource_group, the vm_size, disk_size and the image" 1>&2
 
 		exit 1
 	fi
@@ -55,20 +56,9 @@ function create_vm {
 	resource_group=$2
 	vm_size=$3
 	disk_size=$4
+	image=$5
 
 	vm="${resource_prefix}vm"
-
-	# Use Ubuntu 22.04 as default image.
-	image='canonical:0001-com-ubuntu-server-jammy:22_04-lts:22.04.202204200'
-
-	# If the vm_size corresponds to Ampere Altra one, we need to use this
-	# particular image instead.
-	# VM size corresponding to Ampere Altra seems to have the 'p' feature but it
-	# is not documented so far.
-	if [[ $vm_size =~ [ED][0-9]+p ]]; then
-		image='canonical:0001-com-ubuntu-server-arm-preview-focal:20_04-lts:latest'
-	fi
-
 	az vm create --resource-group $resource_group --name $vm --subnet $(get_kv1_id) --image $image --admin-username ${resource_prefix} --generate-ssh-keys --size $vm_size --os-disk-size-gb $disk_size
 
 	# To extend OS disk space of an already existing VM, you can do the following:
