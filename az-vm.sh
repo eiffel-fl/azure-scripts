@@ -74,7 +74,7 @@ esac
 az login --scope https://management.core.windows.net//.default
 
 current_subscription=$(az account show -o tsv --query name)
-az account set -s 'volk-arc'
+az account set -s '47635d02-50bb-4f1f-8b44-e9e9518015e6'
 
 resource_group=$(create_resource_group $resource_prefix)
 
