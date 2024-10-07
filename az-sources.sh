@@ -107,7 +107,7 @@ function create_vm {
 	image=$5
 
 	vm="${resource_prefix}vm"
-	az vm create --resource-group $resource_group --name $vm --subnet $(get_kv1_id) --image $image --admin-username ${resource_prefix} --generate-ssh-keys --size $vm_size --os-disk-size-gb $disk_size
+	az vm create --resource-group $resource_group --name $vm --subnet $(get_kv1_id) --image $image --admin-username ${resource_prefix} --generate-ssh-keys --size $vm_size --os-disk-size-gb $disk_size --security-type Standard
 
 	# To extend OS disk space of an already existing VM, you can do the following:
 # 	disk_name=$(az disk list --resource-group $resource_group --query '[*].{Name:name,Gb:diskSizeGb,Tier:accountType}' -o tsv | grep $vm | cut -f1)
