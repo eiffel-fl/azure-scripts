@@ -21,8 +21,6 @@ core_count=64
 disk_size=128
 os='Ubuntu'
 
-image='MicrosoftCBLMariner:cbl-mariner:cbl-mariner-2-gen2:2.20221026.01'
-
 while getopts "ac:o:n:h" option; do
 	case $option in
 	a)
@@ -52,21 +50,21 @@ Debian)
 	image='Debian'
 	;;
 Ubuntu)
-	image='Canonical:0001-com-ubuntu-server-jammy:22_04-lts:22.04.202211160'
+	image='Canonical:0001-com-ubuntu-server-jammy:22_04-lts:latest'
 
 	# If the vm_size corresponds to Ampere Altra one, we need to use this
 	# particular image instead.
 	if [ $architecture = 'p' ]; then
-		image='Canonical:0001-com-ubuntu-server-jammy:22_04-lts-arm64:22.04.202211160'
+		image='Canonical:0001-com-ubuntu-server-jammy:22_04-lts-arm64:latest'
 	fi
 	;;
 Mariner)
-	image='MicrosoftCBLMariner:cbl-mariner:cbl-mariner-2-gen2:2.20221110.01'
+	image='MicrosoftCBLMariner:azure-linux-3:azure-linux-3:latest'
 
 	# If the vm_size corresponds to Ampere Altra one, we need to use this
 	# particular image instead.
 	if [ $architecture = 'p' ]; then
-		image='MicrosoftCBLMariner:cbl-mariner:cbl-mariner-2-arm64:2.20221110.01'
+		image='MicrosoftCBLMariner:azure-linux-3:azure-linux-3-arm64:latest'
 	fi
 	;;
 esac
@@ -77,13 +75,6 @@ current_subscription=$(az account show -o tsv --query name)
 az account set -s '47635d02-50bb-4f1f-8b44-e9e9518015e6'
 
 resource_group=$(create_resource_group $resource_prefix)
-
-# If the vm_size corresponds to Ampere Altra one, we need to use this
-# particular image instead.
-# if [ $architecture = 'p' ]; then
-# 	image='canonical:0001-com-ubuntu-server-arm-preview-focal:20_04-lts:latest'
-# fi
-echo "image: ${image}"
 
 # Craft the size string
 vm_size=$(printf $SIZE_FORMAT $core_count $architecture)
