@@ -4,8 +4,8 @@
 
 
 # Create a resource group by first trying if name is already taken.
-# If this is the case, $RANDOM will be concat to name and group will be tried to
-# be created.
+# If this is the case, $RANDOM will be concatened to name and group will be
+# tried to be created.
 function create_resource_group {
 	local resource_prefix
 	local resource_group
@@ -93,11 +93,12 @@ function create_vm {
 	local vm_size
 	local disk_size
 	local image
+	local use_bastion
 
 	local vm
 
-	if [ $# -lt 5 ]; then
-		echo "${FUNCNAME[0]} needs 5 arguments: the resource_prefix, the resource_group, the vm_size, disk_size and the image" 1>&2
+	if [ $# -lt 6 ]; then
+		echo "${FUNCNAME[0]} needs 5 arguments: the resource_prefix, the resource_group, the vm_size, disk_size, the image and use_bastion" 1>&2
 
 		exit 1
 	fi
@@ -107,9 +108,16 @@ function create_vm {
 	vm_size=$3
 	disk_size=$4
 	image=$5
+	use_bastion=$6
 
 	vm="${resource_prefix}vm"
-	az vm create --resource-group $resource_group --name $vm --subnet $(get_kv1_id) --image $image --admin-username ${resource_prefix} --generate-ssh-keys --size $vm_size --os-disk-size-gb $disk_size --security-type Standard
+
+	subnet_args=''
+	if [ "${use_bastion}" = 'false' ]; then
+		subnet_args="--subnet $(get_kv1_id)"
+	fi
+
+	az vm create --resource-group $resource_group --name $vm $subnet_args --image $image --admin-username ${resource_prefix} --generate-ssh-keys --size $vm_size --os-disk-size-gb $disk_size --security-type Standard -o none
 
 	# To extend OS disk space of an already existing VM, you can do the following:
 # 	disk_name=$(az disk list --resource-group $resource_group --query '[*].{Name:name,Gb:diskSizeGb,Tier:accountType}' -o tsv | grep $vm | cut -f1)
@@ -117,7 +125,50 @@ function create_vm {
 # 	az disk update --resource-group $resource_group --name $disk_name --size-gb $disk_size --sku StandardSSD_LRS
 # 	az vm start -g $resource_group -n $vm
 
-	echo -e "VM was created.\nYou should be able to connect using: ssh $(get_vm_username $resource_group $vm)@$(get_vm_private_ip $resource_group $vm)"
+	# "Returns" the VM name to connect it with bastion.
+	echo $vm
+}
+
+# Create a bastion
+function create_bastion {
+	local resource_prefix
+	local resource_group
+	local location
+
+	local vn
+	local bastion_vn
+	local bastion
+
+	if [ $# -lt 3 ]; then
+		echo "${FUNCNAME[0]} needs 3 arguments: the resource_prefix, the resource_group and the location" 1>&2
+
+		exit 1
+	fi
+
+	resource_prefix=$1
+	resource_group=$2
+	location=$3
+
+	vn="${resource_prefix}vn"
+	public_ip="${resource_prefix}publicip"
+	bastion="${resource_prefix}bastion"
+
+	az network vnet create --resource-group $resource_group --name $vn --address-prefix 10.1.0.0/16 --subnet-name default --subnet-prefix 10.1.0.0/24 -o none
+
+	# WARNING The name MUST be AzureBastionSubnet:
+	# https://learn.microsoft.com/en-us/azure/bastion/create-host-cli#createhost
+	az network vnet subnet create --name AzureBastionSubnet --resource-group $resource_group --vnet-name $vn --address-prefix 10.1.1.0/26 -o none
+
+	az network public-ip create --resource-group $resource_group --name $public_ip --sku Standard --location $location -o none
+
+	# Use Standard as sku and --enable-tunneling to avoid the following error:
+	# Bastion Host SKU must be Standard or Premium and Native Client must be enabled.
+	# Moreover, --enable-ip-connect permits using --target-ip-address for
+	# az network bastion tunnel.
+	az network bastion create --name $bastion --public-ip-address $public_ip --resource-group $resource_group --vnet-name $vn --location $location --sku Standard --enable-ip-connect --enable-tunneling -o none
+
+	# "Returns" the created bastion
+	echo $bastion
 }
 
 function craft_windows_password {
