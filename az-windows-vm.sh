@@ -13,7 +13,7 @@ fi
 
 az login --scope https://management.core.windows.net//.default
 
-resource_group=$(create_resource_group $resource_prefix)
+resource_group=$(create_resource_group $resource_prefix westeurope)
 
 create_windows_vm $resource_prefix $resource_group
 

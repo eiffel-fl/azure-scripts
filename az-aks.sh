@@ -52,7 +52,7 @@ done
 
 az login --scope https://management.core.windows.net//.default
 
-resource_group=$(create_resource_group $resource_prefix)
+resource_group=$(create_resource_group $resource_prefix westeurope)
 
 # Craft the size string.
 node_size=$(printf $SIZE_FORMAT $core_count $architecture)

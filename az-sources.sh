@@ -9,22 +9,24 @@
 function create_resource_group {
 	local resource_prefix
 	local resource_group
+	local location
 
-	if [ $# -lt 1 ]; then
-		echo "${FUNCNAME[0]} needs one arguments: the resource_prefix" 1>&2
+	if [ $# -lt 2 ]; then
+		echo "${FUNCNAME[0]} needs two arguments: the resource_prefix and the location" 1>&2
 
 		exit 1
 	fi
 
 	resource_prefix=$1
 	resource_group="${resource_prefix}rg"
+	location=$2
 
 	does_group_exist=$(az group exists -o tsv -n $resource_group)
 	if [ $does_group_exist = "true" ]; then
 		resource_group="${resource_group}${RANDOM}"
 	fi
 
-	az group create --name $resource_group --location westeurope -o none
+	az group create --name $resource_group --location $location -o none
 
 	# "Returns" resource_group in case we needed to craft one.
 	echo $resource_group
