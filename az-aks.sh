@@ -69,6 +69,6 @@ az aks get-credentials --resource-group $resource_group --name $kubernetes_clust
 
 # Parameter 'registry_name' must conform to the following pattern: '^[a-zA-Z0-9]*$'.
 # So, let's remove '-'.
-create_container_registry ${resource_prefix//-/}
+create_container_registry $resource_group ${resource_prefix//-/}
 
 echo -e "Everything should be OK!\nOnce terminated, please delete your resources with: az group delete --no-wait --name ${resource_group}"

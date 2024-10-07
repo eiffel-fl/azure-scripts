@@ -154,15 +154,17 @@ function create_windows_vm {
 # tried to be created.
 function create_container_registry {
 	local resource_prefix
+	local resource_group
 	local registry
 
-	if [ $# -lt 1 ]; then
-		echo "${FUNCNAME[0]} needs one arguments: the resource_prefix" 1>&2
+	if [ $# -lt 2 ]; then
+		echo "${FUNCNAME[0]} needs two arguments: the resource_group and the resource_prefix" 1>&2
 
 		exit 1
 	fi
 
-	resource_prefix=$1
+	resource_group=$1
+	resource_prefix=$2
 	registry="${resource_prefix}registry"
 
 	# If registry name is already taken, we add some randomness.
