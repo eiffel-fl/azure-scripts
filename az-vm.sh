@@ -93,8 +93,9 @@ resource_group=$(create_resource_group $resource_prefix $location)
 vm_size=$(printf $SIZE_FORMAT $core_count $architecture)
 
 if [ "${bastion}" = 'true' ]; then
+	vn=$(create_vnet $resource_prefix $resource_group)
 	# Creating a bastion takes aaaaaaages!
-	bastion=$(create_bastion $resource_prefix $resource_group $location)
+	bastion=$(create_bastion $resource_prefix $resource_group $vn $location)
 	vm=$(create_vm $resource_prefix $resource_group $vm_size $disk_size $image $bastion)
 
 	vm_ip=$(get_vm_private_ip $resource_group $vm)

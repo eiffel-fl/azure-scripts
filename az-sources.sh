@@ -129,35 +129,57 @@ function create_vm {
 	echo $vm
 }
 
-# Create a bastion
-function create_bastion {
+# Create a virtual network.
+function create_vnet {
 	local resource_prefix
 	local resource_group
-	local location
 
 	local vn
-	local bastion_vn
-	local bastion
 
-	if [ $# -lt 3 ]; then
-		echo "${FUNCNAME[0]} needs 3 arguments: the resource_prefix, the resource_group and the location" 1>&2
+	if [ $# -lt 2 ]; then
+		echo "${FUNCNAME[0]} needs 2 arguments: the resource_prefix and the resource_group" 1>&2
 
 		exit 1
 	fi
 
 	resource_prefix=$1
 	resource_group=$2
-	location=$3
 
 	vn="${resource_prefix}vn"
-	public_ip="${resource_prefix}publicip"
-	bastion="${resource_prefix}bastion"
 
 	az network vnet create --resource-group $resource_group --name $vn --address-prefix 10.1.0.0/16 --subnet-name default --subnet-prefix 10.1.0.0/24 -o none
 
+	# Returns the vnet
+	echo $vn
+}
+
+# Create a bastion.
+function create_bastion {
+	local resource_prefix
+	local resource_group
+	local vnet_name
+	local location
+
+	local public_ip
+	local bastion
+
+	if [ $# -lt 4 ]; then
+		echo "${FUNCNAME[0]} needs 4 arguments: the resource_prefix, the resource_group, the vnet_name and the location" 1>&2
+
+		exit 1
+	fi
+
+	resource_prefix=$1
+	resource_group=$2
+	vnet_name=$3
+	location=$4
+
+	public_ip="${resource_prefix}publicip"
+	bastion="${resource_prefix}bastion"
+
 	# WARNING The name MUST be AzureBastionSubnet:
 	# https://learn.microsoft.com/en-us/azure/bastion/create-host-cli#createhost
-	az network vnet subnet create --name AzureBastionSubnet --resource-group $resource_group --vnet-name $vn --address-prefix 10.1.1.0/26 -o none
+	az network vnet subnet create --name AzureBastionSubnet --resource-group $resource_group --vnet-name $vnet_name --address-prefix 10.1.1.0/26 -o none
 
 	az network public-ip create --resource-group $resource_group --name $public_ip --sku Standard --location $location -o none
 
@@ -165,7 +187,7 @@ function create_bastion {
 	# Bastion Host SKU must be Standard or Premium and Native Client must be enabled.
 	# Moreover, --enable-ip-connect permits using --target-ip-address for
 	# az network bastion tunnel.
-	az network bastion create --name $bastion --public-ip-address $public_ip --resource-group $resource_group --vnet-name $vn --location $location --sku Standard --enable-ip-connect --enable-tunneling -o none
+	az network bastion create --name $bastion --public-ip-address $public_ip --resource-group $resource_group --vnet-name $vnet_name --location $location --sku Standard --enable-ip-connect --enable-tunneling -o none
 
 	# "Returns" the created bastion
 	echo $bastion
