@@ -104,7 +104,7 @@ if [ "${bastion}" = 'true' ]; then
 	cat << EOF
 VM was created.
 You can now connect to it using:
-* Either: az network bastion ssh --name $bastion --resource-group $resource_group --target-ip-addres $vm_ip --auth-type "ssh-key" --username $vm_username --ssh-key ~/.ssh/id_rsa
+* Either: az network bastion ssh --name $bastion --resource-group $resource_group --target-ip-address $vm_ip --auth-type "ssh-key" --username $vm_username --ssh-key ~/.ssh/id_rsa
 * Or: sudo az network bastion tunnel --name $bastion --resource-group $resource_group --target-ip-address $vm_ip --resource-port 22 --port 1337; ssh $vm_username@127.0.0.1 -p 1337
 To use scp or sftp, the tunnel is mandatory.
 EOF

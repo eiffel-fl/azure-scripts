@@ -114,10 +114,13 @@ function create_vm {
 
 	subnet_args=''
 	if [ "${use_bastion}" = 'false' ]; then
-		subnet_args="--subnet $(get_kv1_id)"
+		net_args="--subnet $(get_kv1_id)"
+	else
+		# As created in create_vnet().
+		net_args='--vnet-address-prefix 10.10.0.0/16'
 	fi
 
-	az vm create --resource-group $resource_group --name $vm $subnet_args --image $image --admin-username ${resource_prefix} --generate-ssh-keys --size $vm_size --os-disk-size-gb $disk_size --security-type Standard -o none
+	az vm create --resource-group $resource_group --name $vm $net_args --image $image --admin-username ${resource_prefix} --generate-ssh-keys --size $vm_size --os-disk-size-gb $disk_size --security-type Standard -o none
 
 	# To extend OS disk space of an already existing VM, you can do the following:
 # 	disk_name=$(az disk list --resource-group $resource_group --query '[*].{Name:name,Gb:diskSizeGb,Tier:accountType}' -o tsv | grep $vm | cut -f1)
