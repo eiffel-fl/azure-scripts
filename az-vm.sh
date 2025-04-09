@@ -18,7 +18,7 @@ resource_prefix=$(whoami)
 SIZE_FORMAT='Standard_D%d%cs_v5'
 location='westeurope'
 architecture='a'
-bastion='false'
+use_bastion='false'
 core_count=64
 disk_size=128
 os='Ubuntu'
@@ -29,7 +29,7 @@ while getopts "abc:l:o:n:h" option; do
 		architecture='p'
 		;;
 	b)
-		bastion='true'
+		use_bastion='true'
 		;;
 	c)
 		core_count=${OPTARG}
@@ -47,7 +47,7 @@ while getopts "abc:l:o:n:h" option; do
 		echo "Usage: $0 [-n resource_prefix] [-a] [-b] [-c core_count] [-l location] [-o os_sku]" 1>&2
 		echo -e "\t-n: The given string will be used as resource prefix, $(whoami) by default." 1>&2
 		echo -e "\t-a: Use Ampere Altra (i.e. arm64) node, AMD by default." 1>&2
-		echo -e "\t-b: Use bastion to ssh to VM, does not use bastion by default." 1>&2
+		echo -e "\t-b: Use bastion to ssh to VM, does not use use_bastion by default." 1>&2
 		echo -e "\t-c: The given number will be used as node size, 64 cores by default." 1>&2
 		echo -e "\t-l: The given string will be used as location, westeurope by default." 1>&2
 		echo -e "\t-o: The given string will be used as os-sku, Ubuntu by default." 1>&2
@@ -81,7 +81,7 @@ esac
 
 az login --scope https://management.core.windows.net//.default
 
-if [ "${bastion}" = 'false' ]; then
+if [ "${use_bastion}" = 'false' ]; then
 	# kv1 is only available in a given subscription.
 	current_subscription=$(az account show -o tsv --query name)
 	az account set -s '47635d02-50bb-4f1f-8b44-e9e9518015e6'
@@ -92,11 +92,11 @@ resource_group=$(create_resource_group $resource_prefix $location)
 # Craft the size string
 vm_size=$(printf $SIZE_FORMAT $core_count $architecture)
 
-if [ "${bastion}" = 'true' ]; then
+if [ "${use_bastion}" = 'true' ]; then
 	vn=$(create_vnet $resource_prefix $resource_group)
 	# Creating a bastion takes aaaaaaages!
 	bastion=$(create_bastion $resource_prefix $resource_group $vn $location)
-	vm=$(create_vm $resource_prefix $resource_group $vm_size $disk_size $image $bastion)
+	vm=$(create_vm $resource_prefix $resource_group $vm_size $disk_size $image $use_bastion $vn)
 
 	vm_ip=$(get_vm_private_ip $resource_group $vm)
 	vm_username=$(get_vm_username $resource_group $vm)
@@ -105,7 +105,7 @@ if [ "${bastion}" = 'true' ]; then
 VM was created.
 You can now connect to it using:
 * Either: az network bastion ssh --name $bastion --resource-group $resource_group --target-ip-address $vm_ip --auth-type "ssh-key" --username $vm_username --ssh-key ~/.ssh/id_rsa
-* Or: sudo az network bastion tunnel --name $bastion --resource-group $resource_group --target-ip-address $vm_ip --resource-port 22 --port 1337; ssh $vm_username@127.0.0.1 -p 1337
+* Or: sudo az network use_bastion tunnel --name $bastion --resource-group $resource_group --target-ip-address $vm_ip --resource-port 22 --port 1337; ssh $vm_username@127.0.0.1 -p 1337
 To use scp or sftp, the tunnel is mandatory.
 EOF
 else
@@ -116,7 +116,7 @@ else
 	fi
 
 	# Otherwise, create a VM using kv1.
-	vm=$(create_vm $resource_prefix $resource_group $vm_size $disk_size $image $bastion)
+	vm=$(create_vm $resource_prefix $resource_group $vm_size $disk_size $image $use_bastion)
 
 	echo -e "VM was created.\nYou should be able to connect using: ssh $(get_vm_username $resource_group $vm)@$(get_vm_private_ip $resource_group $vm)"
 

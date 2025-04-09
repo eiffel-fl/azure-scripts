@@ -94,11 +94,12 @@ function create_vm {
 	local disk_size
 	local image
 	local use_bastion
+	local vnet_name
 
 	local vm
 
-	if [ $# -lt 6 ]; then
-		echo "${FUNCNAME[0]} needs 5 arguments: the resource_prefix, the resource_group, the vm_size, disk_size, the image and use_bastion" 1>&2
+	if [ $# -lt 7 ]; then
+		echo "${FUNCNAME[0]} needs 7 arguments: the resource_prefix, the resource_group, the vm_size, disk_size, the image, use_bastion and vnet_name" 1>&2
 
 		exit 1
 	fi
@@ -109,6 +110,7 @@ function create_vm {
 	disk_size=$4
 	image=$5
 	use_bastion=$6
+	vnet_name=$7
 
 	vm="${resource_prefix}vm"
 
@@ -116,11 +118,12 @@ function create_vm {
 	if [ "${use_bastion}" = 'false' ]; then
 		net_args="--subnet $(get_kv1_id)"
 	else
-		# As created in create_vnet().
-		net_args='--vnet-address-prefix 10.10.0.0/16'
+		# We have to use default as subnet instead of Azure Bastion, otherwise
+		# an error is thrown.
+		net_args="--vnet-name ${vnet_name} --subnet default"
 	fi
 
-	az vm create --resource-group $resource_group --name $vm $net_args --image $image --admin-username ${resource_prefix} --generate-ssh-keys --size $vm_size --os-disk-size-gb $disk_size --security-type Standard -o none
+	az vm create --resource-group $resource_group --name $vm $net_args --image $image --admin-username $resource_prefix --generate-ssh-keys --size $vm_size --os-disk-size-gb $disk_size --security-type Standard -o none
 
 	# To extend OS disk space of an already existing VM, you can do the following:
 # 	disk_name=$(az disk list --resource-group $resource_group --query '[*].{Name:name,Gb:diskSizeGb,Tier:accountType}' -o tsv | grep $vm | cut -f1)
