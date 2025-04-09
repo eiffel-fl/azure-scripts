@@ -10,12 +10,14 @@ resource_prefix=$(whoami)
 # The size we will use will be:
 # * D: General purpose compute
 # * %d: The VM size, often the number of cores.
-# * %c: The VM architecture, 'a' for AMD, 'p' for Ampere Altra (i.e. arm64) and
-# nothing for Intel.
+# * %c: The VM architecture, 'a' for AMD, 'p' for Microsoft Cobal (i.e. arm64)
+# and nothing for Intel.
 # * s: Premium Storage capable.
-# * v5: Version 5.
+# * v6: Version 6. This is important for arm64 to use Microsoft Cobalt, which
+# is compatible with Trusted Launch while Ampere Altra is not:
+# https://learn.microsoft.com/en-us/azure/virtual-machines/trusted-launch#virtual-machines-sizes
 # For example: https://azureprice.net/vm/Standard_D2ps_v5
-SIZE_FORMAT='Standard_D%d%cs_v5'
+SIZE_FORMAT='Standard_D%d%cs_v6'
 location='westeurope'
 architecture='a'
 use_bastion='false'
@@ -57,22 +59,24 @@ done
 
 case $os in
 Debian)
-	image='Debian'
+	image='Debian:debian-12:12:latest'
+
+	# If the vm_size corresponds to Microsoft Cobal one, we need to use specific
+	# image instead.
+	if [ $architecture = 'p' ]; then
+		image='Debian:debian-12:12-arm64:latest'
+	fi
 	;;
 Ubuntu)
-	image='Canonical:0001-com-ubuntu-server-jammy:22_04-lts:latest'
+	image='Canonical:ubuntu-24_04-lts:server:latest'
 
-	# If the vm_size corresponds to Ampere Altra one, we need to use this
-	# particular image instead.
 	if [ $architecture = 'p' ]; then
-		image='Canonical:0001-com-ubuntu-server-jammy:22_04-lts-arm64:latest'
+		image='Canonical:ubuntu-24_04-lts:server-arm64:latest'
 	fi
 	;;
 Mariner)
 	image='MicrosoftCBLMariner:azure-linux-3:azure-linux-3:latest'
 
-	# If the vm_size corresponds to Ampere Altra one, we need to use this
-	# particular image instead.
 	if [ $architecture = 'p' ]; then
 		image='MicrosoftCBLMariner:azure-linux-3:azure-linux-3-arm64:latest'
 	fi
