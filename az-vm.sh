@@ -10,7 +10,7 @@ resource_prefix=$(whoami)
 # The size we will use will be:
 # * D: General purpose compute
 # * %d: The VM size, often the number of cores.
-# * %c: The VM architecture, 'a' for AMD, 'p' for Microsoft Cobal (i.e. arm64)
+# * %c: The VM architecture, 'a' for AMD, 'p' for Microsoft Cobalt (i.e. arm64)
 # and nothing for Intel.
 # * s: Premium Storage capable.
 # * v6: Version 6. This is important for arm64 to use Microsoft Cobalt, which
@@ -109,7 +109,7 @@ if [ "${use_bastion}" = 'true' ]; then
 VM was created.
 You can now connect to it using:
 * Either: az network bastion ssh --name $bastion --resource-group $resource_group --target-ip-address $vm_ip --auth-type "ssh-key" --username $vm_username --ssh-key ~/.ssh/id_rsa
-* Or: sudo az network use_bastion tunnel --name $bastion --resource-group $resource_group --target-ip-address $vm_ip --resource-port 22 --port 1337; ssh $vm_username@127.0.0.1 -p 1337
+* Or: az network bastion tunnel --name $bastion --resource-group $resource_group --target-ip-address $vm_ip --resource-port 22 --port 1337; ssh $vm_username@127.0.0.1 -p 1337
 To use scp or sftp, the tunnel is mandatory.
 EOF
 else
