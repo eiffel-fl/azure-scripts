@@ -75,9 +75,12 @@ Ubuntu)
 	fi
 	;;
 Mariner)
-	image='MicrosoftCBLMariner:azure-linux-3:azure-linux-3:latest'
+	image='MicrosoftCBLMariner:azure-linux-3:azure-linux-3-gen2:latest'
 
 	if [ $architecture = 'p' ]; then
+		# WARNING Maybe this does not work with trusted launch.
+		# In this case, try:
+		# MicrosoftCBLMariner:azure-linux-3:azure-linux-3-arm64-gen2-fips
 		image='MicrosoftCBLMariner:azure-linux-3:azure-linux-3-arm64:latest'
 	fi
 	;;

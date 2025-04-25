@@ -123,31 +123,7 @@ function create_vm {
 		net_args="--vnet-name ${vnet_name} --subnet default"
 	fi
 
-	security_type='TrustedLaunch'
-	if [[ "${image}" =~ 'azure-linux-3' ]]; then
-		# Mariner 3 is not compatible with trusted launch:
-		# https://learn.microsoft.com/en-us/azure/virtual-machines/trusted-launch#operating-systems-supported
-		security_type='Standard'
-
-		# We also need to tweak vm_size to downgrade the version to avoid the
-		# following error:
-		# The selected VM size 'Standard_D*_v6' cannot boot Hypervisor Generation '1'
-		# So, let's downgrade to v5 image.
-		vm_size="${vm_size%?}5"
-
-		# We need to add this to effectively be able to use Standard:
-		# https://github.com/Azure/azure-cli/issues/31191#issuecomment-2784205683
-		# It will be unregistered below to ensure the normal behavior takes precedence.
-		az feature register --name UseStandardSecurityType --namespace Microsoft.Compute
-		az provider register -n Microsoft.Compute
-	fi
-
-	az vm create --resource-group $resource_group --name $vm $net_args --image $image --admin-username $resource_prefix --generate-ssh-keys --size $vm_size --os-disk-size-gb $disk_size --security-type $security_type -o none
-
-	if [[ "${image}" =~ 'azure-linux-3' ]]; then
-		az feature unregister --name UseStandardSecurityType --namespace Microsoft.Compute
-		az provider register -n Microsoft.Compute
-	fi
+	az vm create --resource-group $resource_group --name $vm $net_args --image $image --admin-username $resource_prefix --generate-ssh-keys --size $vm_size --os-disk-size-gb $disk_size --security-type TrustedLaunch -o none
 
 	# To extend OS disk space of an already existing VM, you can do the following:
 # 	disk_name=$(az disk list --resource-group $resource_group --query '[*].{Name:name,Gb:diskSizeGb,Tier:accountType}' -o tsv | grep $vm | cut -f1)
