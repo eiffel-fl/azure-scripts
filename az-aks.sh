@@ -50,7 +50,7 @@ while getopts "ac:n:o:s:h" option; do
 	esac
 done
 
-az login --scope https://management.core.windows.net//.default
+az login --use-device-code --scope https://management.core.windows.net//.default
 
 resource_group=$(create_resource_group $resource_prefix westeurope)
 
