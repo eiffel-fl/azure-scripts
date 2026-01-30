@@ -202,7 +202,7 @@ function create_bastion {
 function craft_windows_password {
 	password=$(echo $RANDOM | md5sum | head -c 10)
 
-	echo -n "${password}&U"
+	echo -n "${password}_U"
 }
 
 # Create a Windows vm.
@@ -225,7 +225,7 @@ function create_windows_vm {
 	vm="${resource_prefix}vm"
 	password=$(craft_windows_password)
 
-	az vm create --resource-group $resource_group --name $vm --public-ip-sku Standard --image 'MicrosoftWindowsDesktop:windows11preview:win11-21h2-pro:22000.194.2109250206' --admin-username ${resource_prefix} --admin-password $password
+	az vm create --resource-group $resource_group --name $vm --public-ip-sku Standard --image 'MicrosoftWindowsDesktop:windows-11:win11-24h2-avd:26100.3476.250306' --admin-username ${resource_prefix} --admin-password $password --size 'Standard_D4_v5'
 
 	echo -e "VM was created.\nYou should be able to connect using: xfreerdp -u:${resource_prefix} -v:$(az vm show --resource-group $resource_group --name $vm -d --query [publicIps] --output tsv) with the following password: ${password}"
 }
