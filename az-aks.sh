@@ -60,7 +60,7 @@ az login --use-device-code --scope https://management.core.windows.net//.default
 
 if [ -n "$with_gpu" ]; then
 	# GPUs seem to be only available there...
-	location='southcentralus'
+	location='centralus'
 fi
 
 resource_group=$(create_resource_group $resource_prefix $location)
@@ -74,14 +74,14 @@ if [ -n "$os" ]; then
 fi
 
 # Create an Azure Kubernetes Service within above resource group.
-az aks create --resource-group $resource_group --name $kubernetes_cluster --node-count $node_count --generate-ssh-keys -s $node_size $os
+az aks create --resource-group $resource_group --name $kubernetes_cluster --node-count $node_count --generate-ssh-keys -s 'Standard_NC24ads_A100_v4' $os
 # Get credentials, so kubectl will interact with this cluster.
 az aks get-credentials --resource-group $resource_group --name $kubernetes_cluster --overwrite-existing
 
 if [ -n "$with_gpu" ]; then
 	# Mainly taken from:
 	# https://learn.microsoft.com/fr-fr/azure/aks/use-nvidia-gpu?tabs=add-ubuntu-gpu-node-pool
-	az aks nodepool add --resource-group $resource_group --cluster-name $kubernetes_cluster --name 'gpu' --node-count $node_count --node-vm-size 'Standard_NC24ads_A100_v4' --node-taints sku=gpu:NoSchedule $os
+# 	az aks nodepool add --resource-group $resource_group --cluster-name $kubernetes_cluster --name 'gpu' --node-count $node_count --node-vm-size 'Standard_NC24ads_A100_v4' --node-taints sku=gpu:NoSchedule $os
 
 	kubectl create namespace gpu-resources
 
