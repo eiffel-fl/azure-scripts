@@ -239,7 +239,7 @@ function create_container_registry {
 	local registry
 
 	if [ $# -lt 2 ]; then
-		echo "${FUNCNAME[0]} needs two arguments: the resource_group and the resource_prefix" 1>&2
+		echo "${FUNCNAME[0]} needs 2 arguments: the resource_group and the resource_prefix" 1>&2
 
 		exit 1
 	fi
@@ -260,4 +260,34 @@ function create_container_registry {
 	az acr login --name $registry
 
 	echo -e "Container registry is: ${registry}.azurecr.io\nYou can use this as CONTAINER_REPO"
+}
+
+# Create a blob storage
+function create_blob_storage {
+	local resource_prefix
+	local resource_group
+	local container
+	local location
+	local storage
+	local key
+
+	if [ $# -lt 3 ]; then
+		echo "${FUNCNAME[0]} needs 3 arguments: the resource_group, the resource_prefix and the location" 1>&2
+
+		exit 1
+	fi
+
+	resource_group=$1
+	resource_prefix=$2
+	location=$3
+
+	storage="${resource_prefix//-/}store${RANDOM}"
+	container="${resource_prefix}-store-container"
+
+	az storage account create -g $resource_group -n $storage -l $location --sku Standard_LRS
+	az storage container create --name $container --account-name $storage
+
+	key=$(az storage account keys list -g $resource_group -n $storage --query "[0].value" -o tsv)
+
+	echo -e "Blob storage is: ${storage}.\nThe associated container is: ${container}.\nThe key is: ${key}."
 }
