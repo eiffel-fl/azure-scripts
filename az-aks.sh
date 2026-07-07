@@ -136,4 +136,6 @@ fi
 # So, let's remove '-'.
 create_container_registry $resource_group ${resource_prefix//-/}
 
+create_blob_storage $resource_group $resource_prefix $location
+
 echo -e "Everything should be OK!\nOnce terminated, please delete your resources with: az group delete --no-wait --name ${resource_group}"
