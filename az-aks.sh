@@ -23,7 +23,7 @@ node_count=1
 with_gpu=''
 os=''
 
-while getopts "agc:n:o:s:h" option; do
+while getopts "aigc:n:o:s:h" option; do
 	case $option in
 	a)
 		architecture='p'
@@ -43,14 +43,18 @@ while getopts "agc:n:o:s:h" option; do
 	g)
 		with_gpu='true'
 		;;
+	i)
+		use_automatic='true'
+		;;
 	h|\?)
-		echo "Usage: $0 [-n resource_prefix] [-ag] [-c core_count]" 1>&2
+		echo "Usage: $0 [-n resource_prefix] [-aig] [-c core_count]" 1>&2
 		echo -e "\t-n: The given string will be used as resource prefix, $(whoami) by default." 1>&2
 		echo -e "\t-a: Use Ampere Altra (i.e. arm64) node, Intel by default." 1>&2
 		echo -e "\t-c: The given number will be used as node size, 2 cores by default." 1>&2
 		echo -e "\t-s: The given number will be used as node count, 1 node by default." 1>&2
 		echo -e "\t-o: The given string will be used as os-sku, Ubuntu by default." 1>&2
 		echo -e "\t-g: Add GPU capabilities to the cluster." 1>&2
+		echo -e "\t-i: Use automatic as SKU. With this options -a, -c, -s and -o are ignored." 1>&2
 		exit 1
 		;;
 	esac
@@ -73,8 +77,14 @@ if [ -n "$os" ]; then
 	os="--os-sku ${os}"
 fi
 
+if [ -n "$use_automatic" ]; then
+	options=(--sku automatic --no-ssh-key)
+else
+	options=(--generate-ssh-keys --node-count ${node_count} -s $node_size $os)
+fi
+
 # Create an Azure Kubernetes Service within above resource group.
-az aks create --resource-group $resource_group --name $kubernetes_cluster --node-count $node_count --generate-ssh-keys -s $node_size $os
+az aks create --resource-group $resource_group --name $kubernetes_cluster ${options[@]}
 # Get credentials, so kubectl will interact with this cluster.
 az aks get-credentials --resource-group $resource_group --name $kubernetes_cluster --overwrite-existing
 
