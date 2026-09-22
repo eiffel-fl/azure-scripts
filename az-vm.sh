@@ -86,7 +86,7 @@ Mariner)
 	;;
 esac
 
-az login --use-device-code --scope https://management.core.windows.net//.default
+az login --scope https://management.core.windows.net//.default
 
 if [ "${use_bastion}" = 'false' ]; then
 	# kv1 is only available in a given subscription.

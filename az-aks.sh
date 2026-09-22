@@ -60,7 +60,7 @@ while getopts "aigc:n:o:s:h" option; do
 	esac
 done
 
-az login --use-device-code --scope https://management.core.windows.net//.default
+az login --scope https://management.core.windows.net//.default
 
 if [ -n "$with_gpu" ]; then
 	# GPUs seem to be only available there...
